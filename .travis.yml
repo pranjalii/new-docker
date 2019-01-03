@@ -1,0 +1,21 @@
+sudo: required
+services:
+   - docker
+
+before_install:
+   - docker build -t pranjalii/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+   - docker run pranjalii/react-test npm test -- --coverage
+
+after_success:
+   - docker build -t pranjalii/multi-client ./client
+   - docker build -t pranjalii/multi-nginx ./nginx
+   - docker build -t pranjalii/multi-server ./server
+   - docker build -t pranjalii/multi-worker ./worker
+   # log in to docker cli and push images to dockerhub
+   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+   - docker push pranjalii/multi-client
+   - docker push pranjalii/multi-nginx
+   - docker push pranjalii/multi-server
+   - docker push pranjalii/multi-worker 
